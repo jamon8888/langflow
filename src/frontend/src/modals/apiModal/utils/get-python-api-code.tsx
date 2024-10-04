@@ -29,7 +29,7 @@ import warnings
 try:
     from langflow.load import upload_file
 except ImportError:
-    warnings.warn("Langflow provides a function to help you upload files to the flow. Please install langflow to use it.")
+    warnings.warn("Platform provides a function to help you upload files to the flow. Please install Platform  to use it.")
     upload_file = None
 
 BASE_API_URL = "${window.location.protocol}//${window.location.host}"

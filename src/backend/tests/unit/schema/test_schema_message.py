@@ -13,18 +13,18 @@ def client():
 async def test_message_async_prompt_serialization():
     template = "Hello, {name}!"
     message = await Message.from_template_and_variables(template, name="Langflow")
-    assert message.text == "Hello, Langflow!"
+    assert message.text == "Hello, Hacienda Platform!"
 
     prompt = message.load_lc_prompt()
     assert isinstance(prompt, ChatPromptTemplate)
-    assert prompt.messages[0].content == "Hello, Langflow!"
+    assert prompt.messages[0].content == "Hello, Hacienda Platform!"
 
 
 def test_message_prompt_serialization():
     template = "Hello, {name}!"
     message = Message.sync_from_template_and_variables(template, name="Langflow")
-    assert message.text == "Hello, Langflow!"
+    assert message.text == "Hello, Hacienda Platform!"
 
     prompt = message.load_lc_prompt()
     assert isinstance(prompt, ChatPromptTemplate)
-    assert prompt.messages[0].content == "Hello, Langflow!"
+    assert prompt.messages[0].content == "Hello, Hacienda Platform!"

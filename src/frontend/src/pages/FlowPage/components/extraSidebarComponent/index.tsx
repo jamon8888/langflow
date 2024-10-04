@@ -308,7 +308,7 @@ export default function ExtraSidebar(): JSX.Element {
           {hasStore && (
             <a
               target={"_blank"}
-              href="https://langflow.store"
+              href="#"
               className="components-disclosure-arrangement"
               draggable="false"
             >

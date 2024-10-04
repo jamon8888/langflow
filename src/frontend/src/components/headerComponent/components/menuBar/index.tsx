@@ -276,7 +276,7 @@ export const MenuBar = ({}: {}): JSX.Element => {
                 </h2>
                 <p className="text-muted-foreground">
                   <a
-                    href="https://docs.langflow.org/configuration-auto-saving"
+                    href="#"
                     className="text-primary underline"
                   >
                     Enable auto-saving
