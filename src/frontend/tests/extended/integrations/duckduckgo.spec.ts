@@ -47,7 +47,7 @@ test("user should be able to use duckduckgo search component", async ({
 
   await page
     .getByTestId("popover-anchor-input-input_value")
-    .fill("what is langflow?");
+    .fill("what is Platform?");
 
   await page.getByTestId("button_run_duckduckgo search").click();
 

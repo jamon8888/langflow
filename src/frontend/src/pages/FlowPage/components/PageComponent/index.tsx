@@ -178,7 +178,7 @@ export default function Page({ view }: { view?: boolean }): JSX.Element {
     if (checkOldComponents({ nodes })) {
       setNoticeData({
         title:
-          "Components created before Langflow 1.0 may be unstable. Ensure components are up to date.",
+          "Components created before Platform 1.0 may be unstable. Ensure components are up to date.",
       });
     }
   }, [currentFlowId]);

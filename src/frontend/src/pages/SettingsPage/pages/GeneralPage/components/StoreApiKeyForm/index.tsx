@@ -78,7 +78,7 @@ const StoreApiKeyFormComponent = ({
                   href="#"
                   target="_blank"
                 >
-                  langflow.store
+                  #
                 </a>
               </span>
             </div>
