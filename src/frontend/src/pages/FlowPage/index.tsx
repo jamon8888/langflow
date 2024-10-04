@@ -170,7 +170,7 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
           >
             <div className="mt-1">Hacienda Platform</div>
 
-            <div className={version ? "mt-2" : "mt-1"}>⛓️ v{version}</div>
+            <div className={version ? "mt-2" : "mt-1"}>Hacienda Plaform v{version}</div>
           </a>
         )}
       </div>
