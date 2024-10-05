@@ -72,8 +72,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 LABEL org.opencontainers.image.title=langflow
 LABEL org.opencontainers.image.authors=['Langflow']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/langflow-ai/langflow
-LABEL org.opencontainers.image.source=https://github.com/langflow-ai/langflow
+LABEL org.opencontainers.image.url=https://github.com/jamon8888/langflow
+LABEL org.opencontainers.image.source=https://github.com/jamon8888/langflow
 
 USER user
 WORKDIR /app
