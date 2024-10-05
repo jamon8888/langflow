@@ -3,6 +3,9 @@ ENV TZ=UTC
 
 WORKDIR /app
 
+# Copy uv.lock from the host to the Docker container
+COPY ./uv.lock /app/
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -11,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /app
+
 
 # Install dependencies using uv
 RUN --mount=type=cache,target=/root/.cache/uv \
