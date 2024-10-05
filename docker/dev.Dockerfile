@@ -4,11 +4,11 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 # Set timezone
 ENV TZ=UTC
 
-# Set working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy required dependency file to the app folder
-COPY ./uv.lock /app/
+# Copy uv.lock file from the root directory to /app inside the container
+COPY ../uv.lock /app/
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -18,8 +18,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy all local files to the container
-COPY . /app
+# Copy all other contents from the current context (docker folder and below)
+# You can adjust this if you want to include only project files, excluding Docker-specific scripts.
+COPY . /app/
 
 # Cache uv installation directories for faster builds on dependencies update
 RUN --mount=type=cache,target=/root/.cache/uv \
