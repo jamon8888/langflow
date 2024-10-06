@@ -132,17 +132,16 @@ export default function Header(): JSX.Element {
           {ENABLE_SOCIAL_LINKS && (
             <>
               <a
-                href="https://github.com/langflow-ai/langflow"
+                href="#"
                 target="_blank"
                 rel="noreferrer"
                 className="header-github-link gap-2"
               >
                 <FaGithub className="h-5 w-5" />
-                <div className="hidden lg:block">Star</div>
-                <div className="header-github-display">{stars ?? 0}</div>
+               
               </a>
               <a
-                href="https://twitter.com/langflow_ai"
+                href="#"
                 target="_blank"
                 rel="noreferrer"
                 className="text-muted-foreground"
@@ -150,7 +149,7 @@ export default function Header(): JSX.Element {
                 <RiTwitterXFill className="side-bar-button-size" />
               </a>
               <a
-                href="https://discord.gg/EqksyE2EX9"
+                href="#"
                 target="_blank"
                 rel="noreferrer"
                 className="text-muted-foreground"
@@ -259,7 +258,7 @@ export default function Header(): JSX.Element {
                   className="cursor-pointer gap-2"
                   onClick={() =>
                     window.open(
-                      DOCS_LINK || "https://docs.langflow.org/",
+                      DOCS_LINK || "#",
                       "_blank",
                     )
                   }
@@ -271,7 +270,7 @@ export default function Header(): JSX.Element {
                   className="cursor-pointer gap-2"
                   onClick={() =>
                     window.open(
-                      "https://github.com/langflow-ai/langflow/discussions",
+                      "#",
                       "_blank",
                     )
                   }
