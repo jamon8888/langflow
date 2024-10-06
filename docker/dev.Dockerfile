@@ -12,13 +12,12 @@ COPY ./uv.lock /app/
 
 # Install system dependencies in one go
 # Use optimization to reduce installation time and image size
-RUN sed -i 's|http://deb.debian.org/debian|http://ftp.us.debian.org/debian|g' /etc/apt/sources.list && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        curl \
-        npm \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Update package lists and install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    npm && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy application code after system dependencies have been installed
 COPY . /app/
