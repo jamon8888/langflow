@@ -78,7 +78,7 @@ export default function Header(): JSX.Element {
     <div className="header-arrangement relative">
       <div className="header-start-display">
         <CustomLink to="/all" className="cursor-pointer">
-          <span className="ml-4 text-2xl">⛓️</span>
+          <span className="ml-4 text-2xl">Hacienda Platform</span>
         </CustomLink>
         {showArrowReturnIcon && (
           <Button
