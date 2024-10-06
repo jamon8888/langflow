@@ -27,4 +27,4 @@ EXPOSE 7860
 EXPOSE 3000
 
 # Set the default entry point when starting the container
-CMD ["./docker/dev.start.sh"]
+CMD ["./dev.start.sh"]
