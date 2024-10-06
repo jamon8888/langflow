@@ -11,8 +11,8 @@ services:
       - LANGFLOW_DATABASE_URL=postgresql://langflow:langflow@postgres:5432/langflow
     volumes:
       - langflow-data:/app/langflow
-    # Override the entry command to run backend directly (Flask in this example)
-    command: flask run --host=0.0.0.0 --port=7860
+    # Use Python directly to run the Flask app
+    command: python -m flask run --host=0.0.0.0 --port=7860
 
   postgres:
     image: postgres:16
