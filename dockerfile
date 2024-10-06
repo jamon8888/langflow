@@ -1,10 +1,10 @@
-# Base image with Python 3.12 on Debian Bookworm slim
+# Base image with Python 3.12 from uv (Universal Virtualization)
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# Set timezone (if necessary)
+# Set timezone as UTC
 ENV TZ=UTC
 
-# Set the working directory in the container to /app
+# Set the working directory inside the container
 WORKDIR /app
 
 # Install base system dependencies, npm, and clean up apt cache
@@ -15,10 +15,10 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the entire repository into /app inside the container
+# Copy the entire repository (local context) to "/app" directory inside the container
 COPY . /app
 
-# Use `uv` to sync Python dependencies with caching for faster builds
+# Use `uv` tool to sync Python dependencies using pyproject.toml and other config files
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=/app/uv.lock \
     --mount=type=bind,source=README.md,target=/app/README.md \
@@ -28,9 +28,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=src/backend/base/pyproject.toml,target=/app/src/backend/base/pyproject.toml \
     uv sync --frozen --no-install-project --no-dev
 
-# Expose ports that Langflow (and the frontend) run on
-EXPOSE 7860  # Langflow backend or API
-EXPOSE 3000  # Optional frontend port
+# Expose ports that Langflow will need: 7860 for the main backend, 3000 for any frontend dev work
+EXPOSE 7860         # Langflow Backend API
+EXPOSE 3000         # Optional frontend or other services
 
-# Run dev start script to start Langflow app
+# Use the development entrypoint script (command to start Langflow dev environment)
 CMD ["./docker/dev.start.sh"]
