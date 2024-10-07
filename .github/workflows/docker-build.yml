@@ -14,7 +14,7 @@ env:
   IMAGE_NAME: 'ixinjulu/platform'
 
 jobs:
-  build_base_image:
+  build_images:
     runs-on: ubuntu-latest
     
     steps:
@@ -34,81 +34,30 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Base Image
+      - name: Build and Push Frontend and Backend Images
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64, linux/arm64
           push: true
-          file: ./docker/build_and_push_base.Dockerfile
+          file: ./docker/build_and_push.Dockerfile
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
-        id: base_image
-
-  build_backend_image:
-    needs: build_base_image
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
-
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU for cross-platform builds
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx for multi-platform builds
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and Push Backend Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: ${{ matrix.platform }}
-          push: true
-          file: ./docker/build_and_push_backend.Dockerfile
-          tags: |
+            ${{ env.IMAGE_NAME }}:frontend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
             ${{ env.IMAGE_NAME }}:backend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
-          build-args: |
-            LANGFLOW_IMAGE=ixinjulu/platform:latest
-        id: backend_image
 
-  merge_images:
-    needs: build_backend_image
+  verify_images:
+    needs: build_images
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Docker Buildx for merging images
-        uses: docker/setup-buildx-action@v3
-
       - name: Docker Login to Docker Hub
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Create and Push Multi-Platform Manifest
-        run: |
-          backend_amd64_digest="${{ steps.backend_image.outputs.digest-amd64 }}"
-          backend_arm64_digest="${{ steps.backend_image.outputs.digest-arm64 }}"
-
-          docker buildx imagetools create \
-            --tag ${{ env.IMAGE_NAME }}:backend-latest \
-            --tag ${{ env.IMAGE_NAME }}:backend-dev \
-            --tag ${{ env.IMAGE_NAME }}:backend-${{ github.sha }} \
-            $backend_amd64_digest \
-            $backend_arm64_digest
 
       - name: Verify Docker Manifests
-        run: docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:backend-latest
-
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:frontend-latest
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:backend-latest
