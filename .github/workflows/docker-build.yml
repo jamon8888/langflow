@@ -19,24 +19,25 @@ jobs:
 
     # Matrix strategy to build both backend and frontend for different platforms
     strategy:
+      fail-fast: false
       matrix:
-        component: [docker-backend, docker-frontend]  # Define both backends and frontend
-        platform: [linux/amd64, linux/arm64]  # Build for multiple platforms (AMD64/ARM64)
+        component: [docker-backend, docker-frontend]  # Define both backend and frontend
+        platform: [linux/amd64, linux/arm64]          # Build for multiple platforms: amd64 and arm64
 
     steps:
       # Step 1: Check out the repository
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up QEMU to enable cross-platform builds (required for ARM64)
+      # Step 2: Set up QEMU for cross-platform support (multi-arch build)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      
+
       # Step 3: Set up Docker Buildx for multi-platform builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 4: Log in to Docker Hub (ensure credentials are stored as secrets)
+      # Step 4: Log in to Docker Hub (credentials are pulled from GitHub Secrets)
       - name: Docker Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -44,30 +45,31 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 5: Select Dockerfile based on matrix.component
+      # Step 5: Select the correct Dockerfile for the component (backend or frontend)
       - name: Select Dockerfile for build
         id: select-dockerfile
         run: |
-          if [ "${{ matrix.component }}" = "docker-backend" ]; then
+          if [[ "${{ matrix.component }}" == "docker-backend" ]]; then
             echo "DOCKERFILE=docker/build_and_push_backend.Dockerfile" >> $GITHUB_ENV
-          else
+          elif [[ "${{ matrix.component }}" == "docker-frontend" ]]; then
             echo "DOCKERFILE=docker/frontend/build_and_push_frontend.Dockerfile" >> $GITHUB_ENV
+          fi
         shell: bash
 
-      # Step 6: Build and push Docker images
+      # Step 6: Build and push Docker image using the Dockerfile selected
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          platforms: ${{ matrix.platform }}  # Build for both platforms: amd64 and arm64
+          context: .  # Use current directory for the build context
+          platforms: ${{ matrix.platform }}  # Build for both platforms (amd64 and arm64)
           push: true  # Push the image to Docker Hub
-          file: ${{ env.DOCKERFILE }}  # Use the Dockerfile selected in the previous step
+          file: ${{ env.DOCKERFILE }}  # Use Dockerfile chosen by previous step
           tags: |
             ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
           build-args: |
             LANGFLOW_IMAGE=ixinjulu/platform:latest
 
-      # Optional: Verify Docker images (lists images locally for debugging purposes)
+      # Optional: Verify Docker images (sanity check by listing images)
       - name: Verify Docker Images
         run: docker images
 
@@ -75,11 +77,11 @@ jobs:
     needs: build_components
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Set up Docker Buildx for multi-arch manifest
-      - name: Set up Docker Buildx for manifest creation
+      # Step 1: Set up Docker Buildx for creating multi-platform manifests
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 2: Docker login to enable pushing manifests
+      # Step 2: Log in to Docker Hub for pushing the manifest
       - name: Docker Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -87,7 +89,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Create and push multi-platform manifests
+      # Step 3: Create and push multi-architecture Docker manifests
       - name: Create and Push Multi-Platform Manifests
         run: |
           docker buildx imagetools create \
@@ -95,6 +97,6 @@ jobs:
             --tag ${{ env.IMAGE_NAME }}:dev \
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      # Step 4: Optional: Verify manifest creation
-      - name: Verify created Docker manifests
+      # Step 4: Optional: Verify Docker manifests (sanity check)
+      - name: Verify Docker manifests
         run: docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:latest
