@@ -89,4 +89,4 @@ jobs:
           docker buildx imagetools create \
             --tag ${{ env.IMAGE_NAME }}:latest \
             --tag ${{ env.IMAGE_NAME }}:dev \
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}   # Ensure SHA tagging for builds
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
