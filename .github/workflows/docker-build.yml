@@ -1,249 +1,90 @@
 name: Docker Build and Push
 
 on:
-  workflow_call:
-    inputs:
-      version:
-        required: false
-        type: string
-      release_type:
-        required: true
-        type: string
-      pre_release:
-        required: false
-        type: boolean
-        default: false
-      nightly_tag_main:
-        description: "Tag for the nightly main build"
-        required: false
-        type: string
-        default: ''
-      nightly_tag_base:
-        description: "Tag for the nightly base build"
-        required: false
-        type: string
-        default: ''
-
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to build"
-        required: false
-        type: string
-      release_type:
-        description: "Type of release"
-        required: true
-        type: string
-      pre_release:
-        description: "Pre-release"
-        required: false
-        type: boolean
-        default: false
-      nightly_tag_main:
-        description: "Tag for the nightly main build"
-        required: false
-        type: string
-        default: ''
-      nightly_tag_base:
-        description: "Tag for the nightly base build"
-        required: false
-        type: string
-        default: ''
+  push:
+    branches:
+      - main
+      - dev
+    tags:
+      - v*
 
 env:
-  POETRY_VERSION: "1.8.2"
-  TEST_TAG: "ixinjulu/platform:test"
+  REGISTRY: docker.io
+  IMAGE_NAME: 'ixinjulu/platform'
 
 jobs:
-  get-version:
-    name: Get Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get-version-input.outputs.version || steps.get-version-base.outputs.version || steps.get-version-main.outputs.version }}
-      nightly-tag: ${{ steps.resolve-nightly-tag.outputs.nightly_tag }}
-      nightly-build: ${{ steps.resolve-nightly-tag.outputs.nightly_build }}
-    steps:
-      - name: Resolve nightly tag
-        id: resolve-nightly-tag
-        run: |
-          # Note - this is more complex than I'd like. For `main` builds, we just pass the `main` tag.
-          # For `base` builds, we pass both the `base` and `main` tags. This is because the `main` tag is the
-          # version we need to check out for the build, but the `base` tag is the version we need to build.
-          #
-          # So, you need to check for `base` existence before `main`.
-
-          if [[ "${{ inputs.nightly_tag_base }}" != '' ]]; then
-            if [[ "${{ inputs.release_type }}" != "base" ]]; then
-              echo "Release type is not 'base'. Exiting the workflow."
-              exit 1
-            fi
-
-            if [[ "${{ inputs.nightly_tag_main }}" == '' ]]; then
-              echo "Nightly tag main is empty. Exiting the workflow."
-              exit 1
-            fi
-
-            echo "nightly_tag=${{ inputs.nightly_tag_base }}" >> $GITHUB_OUTPUT
-            echo "nightly_build=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.nightly_tag_main }}" != '' ]]; then
-            if [[ "${{ inputs.release_type }}" != "main" ]]; then
-              echo "Release type is not 'main'. Exiting the workflow."
-              exit 1
-            fi
-            echo "nightly_tag=${{ inputs.nightly_tag_main }}" >> $GITHUB_OUTPUT
-            echo "nightly_build=true" >> $GITHUB_OUTPUT
-          else
-            echo "nightly_tag=" >> $GITHUB_OUTPUT
-            echo "nightly_build=false" >> $GITHUB_OUTPUT
-
-      - name: Check out the code at a specific ref
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.nightly_tag_main || github.ref }}
-          persist-credentials: true
-
-      - name: "Setup Environment"
-        uses: ./.github/actions/setup-uv
-        with:
-          ref: ${{ inputs.nightly_tag_main || github.ref }}
-
-      - name: Install the project
-        run: uv sync --dev
-
-      - name: Get Version from Input
-        if: ${{ inputs.version != '' }}
-        id: get-version-input
-        run: |
-          version=${{ inputs.version }}
-          echo version=$version
-          echo version=$version >> $GITHUB_OUTPUT
-
-      - name: Get Version Base
-        if: ${{ inputs.version == '' && inputs.release_type == 'base' }}
-        id: get-version-base
-        run: |
-          version=$(uv tree | grep 'platform-base' | awk '{print $3}' | sed 's/^v//')
-          echo version=$version
-          echo version=$version >> $GITHUB_OUTPUT
-
-      - name: Get Version Main
-        if: ${{ inputs.version == '' && inputs.release_type == 'main' }}
-        id: get-version-main
-        run: |
-          version=$(uv tree | grep 'platform' | grep -v 'platform-base' | awk '{print $2}' | sed 's/^v//')
-          echo version=$version
-          echo version=$version >> $GITHUB_OUTPUT
-
-  setup:
-    runs-on: ubuntu-latest
-    needs: get-version
-    outputs:
-      docker_tags: ${{ steps.set-vars.outputs.docker_tags }}
-      file: ${{ steps.set-vars.outputs.file }}
-    steps:
-      - name: Check out the code at a specific ref
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.nightly_tag_main || github.ref }}
-
-      - name: Set Dockerfile and Tags
-        id: set-vars
-        run: |
-          nightly_suffix=''
-          if [[ "${{ needs.get-version.outputs.nightly-build }}" == "true" ]]; then
-            nightly_suffix="-nightly"
-          fi
-
-          if [[ "${{ inputs.release_type }}" == "base" ]]; then
-            echo "docker_tags=ixinjulu/platform${nightly_suffix}:base-${{ needs.get-version.outputs.version }},ixinjulu/platform${nightly_suffix}:base-latest" >> $GITHUB_OUTPUT
-            echo "file=./docker/build_and_push_base.Dockerfile" >> $GITHUB_OUTPUT
-          else
-            if [[ "${{ inputs.pre_release }}" == "true" ]]; then
-              echo "docker_tags=ixinjulu/platform${nightly_suffix}:${{ needs.get-version.outputs.version }}" >> $GITHUB_OUTPUT
-            else
-              echo "docker_tags=ixinjulu/platform${nightly_suffix}:${{ needs.get-version.outputs.version }},ixinjulu/platform${nightly_suffix}:latest" >> $GITHUB_OUTPUT
-            fi
-            echo "file=./docker/build_and_push.Dockerfile" >> $GITHUB_OUTPUT
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [get-version, setup]
-    steps:
-      - name: Check out the code at a specific ref
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
-          persist-credentials: true
-
-      - name: "Setup Environment"
-        uses: ./.github/actions/setup-uv
-        with:
-          ref: ${{ inputs.nightly_tag_main || github.ref }}
-
-      - name: Install the project
-        run: |
-          if [[ "${{ inputs.release_type }}" == "base" ]]; then
-            cd src/backend/base && uv sync --no-dev --no-sources
-          else
-            uv sync --no-dev --no-sources
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and Push to Docker Hub
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          file: ${{ needs.setup.outputs.file }}
-          tags: ${{ needs.setup.outputs.docker_tags }}
-          provenance: false
-
+  # Main job to build the primary backend and frontend images
   build_components:
     runs-on: ubuntu-latest
-    needs: [build, get-version]
     strategy:
       matrix:
+        # Matrix to build both backend and frontend components on multiple platforms
         component: [docker-backend, docker-frontend]
-        include:
-          - component: docker-backend
-            dockerfile: ./docker/build_and_push_backend.Dockerfile
-            tags: ${{ inputs.pre_release == 'true' && format('ixinjulu/platform-backend{0}:{1}', needs.get-version.outputs.nightly-build && '-nightly' || '', needs.get-version.outputs.version) || format('ixinjulu/platform-backend{0}:{1},ixinjulu/platform-backend{0}:latest', needs.get-version.outputs.nightly-build && '-nightly' || '', needs.get-version.outputs.version) }}
-            platform_image: ixinjulu/platform${{ needs.get-version.outputs.nightly-build && '-nightly' || '' }}:${{ needs.get-version.outputs.version }}
-          - component: docker-frontend
-            dockerfile: ./docker/frontend/build_and_push_frontend.Dockerfile
-            tags: ${{ inputs.pre_release == 'true' && format('ixinjulu/platform-frontend{0}:{1}', needs.get-version.outputs.nightly-build && '-nightly' || '', needs.get-version.outputs.version) || format('ixinjulu/platform-frontend{0}:{1},ixinjulu/platform-frontend{0}:latest', needs.get-version.outputs.nightly-build && '-nightly' || '', needs.get-version.outputs.version) }}
-            platform_image: ixinjulu/platform${{ needs.get-version.outputs.nightly-build && '-nightly' || '' }}:${{ needs.get-version.outputs.version }}
+        platform: [linux/amd64, linux/arm64]  # Build for different platforms
 
     steps:
-      - name: Check out the code at a specific ref
+      # Step 1: Checkout the repository
+      - name: Check out the repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.nightly_tag_main || github.ref }}
 
+      # Step 2: Set up QEMU for multi-platform support
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Step 3: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Step 4: Docker login to the container registry (Docker Hub)
       - name: Login to Docker Hub
-        if: ${{ matrix.component == 'docker-backend' }} || ${{ matrix.component == 'docker-frontend' }}
         uses: docker/login-action@v3
         with:
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push ${{ matrix.component }}
-        uses: docker/build-push-action@v6
+      # Step 5: Build and push the images for backend and frontend
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: |
-            PLATFORM_IMAGE=${{ matrix.platform_image }}
-          file: ${{ matrix.dockerfile }}
-          tags: ${{ matrix.tags }}
+          platforms: ${{ matrix.platform }}  # Build across platforms
           push: true
-          provenance: false
+          file: |
+            # Building images using different Dockerfiles for backend and frontend
+            ${{ matrix.component == 'docker-backend' && 'docker/build_and_push_backend.Dockerfile' || 'docker/frontend/build_and_push_frontend.Dockerfile' }}
+          tags: |
+            # Tagging strategy: main/dev branches and version tags
+            ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
+          build-args: |
+            COMPONENT=${{ matrix.component }}  # Pass which component is being built
+
+      # Step 6: Verify the built images (optional, just to ensure everything is correctly set)
+      - name: Verify Docker Images
+        run: docker images
+
+  # Merge the built images into a single multi-arch manifest
+  merge_images:
+    needs: build_components
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      # Step 2: Log into Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 3: Create and push a multi-platform manifest for the image
+      - name: Create and Push Multi-Platform Manifests
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ env.IMAGE_NAME }}:latest \
+            --tag ${{ env.IMAGE_NAME }}:dev \
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
