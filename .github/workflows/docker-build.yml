@@ -1,92 +1,92 @@
 name: Docker Build and Push
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual workflow dispatch.
   push:
     branches:
-      - main
-      - dev
+      - main    # Trigger on main branch pushes.
+      - dev     # Trigger on dev branch pushes.
     tags:
-      - v*
+      - v*      # Trigger on version tags (e.g., v1.0.0).
 
 env:
   REGISTRY: docker.io
   IMAGE_NAME: 'ixinjulu/platform'
 
 jobs:
-  # Main job to build the primary backend and frontend images
   build_components:
     runs-on: ubuntu-latest
+
+    # Build matrix supporting component (backend/frontend) across two platforms: amd64 and arm64.
     strategy:
       matrix:
-        # Matrix to build both backend and frontend components on multiple platforms
         component: [docker-backend, docker-frontend]
-        platform: [linux/amd64, linux/arm64]  # Build for different platforms
+        platform: [linux/amd64, linux/arm64]
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Check out the repository
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up QEMU for multi-platform support
+      # Step 2: Set up QEMU to enable multi-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-
-      # Step 3: Set up Docker Buildx
+      
+      # Step 3: Set up Docker Buildx for multi-platform support
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 4: Docker login to the container registry (Docker Hub)
-      - name: Login to Docker Hub
+      # Step 4: Log in to the Docker registry (Docker Hub)
+      - name: Docker Login
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}  # Username provided by GitHub Secrets.
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Password (or token) provided by GitHub Secrets.
 
-      # Step 5: Echo LANGFLOW_IMAGE (Debug Step)
+      # Step 5: Output some debug information to ensure everything is set correctly
       - name: Echo LANGFLOW_IMAGE (Debug)
         run: echo "Using LANGFLOW_IMAGE: ixinjulu/platform:latest"
-        
-      # Step 6: Build and push the images for backend and frontend
+
+      # Step 6: Build and Push the Docker image (for both backend and frontend components)
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          platforms: ${{ matrix.platform }}  # Build across platforms
-          push: true
+          context: .  # Use current context for the build.
+          platforms: ${{ matrix.platform }}  # Build for both amd64 and arm64.
+          push: true  # Ensure it pushes to the registry.
           file: |
             ${{ matrix.component == 'docker-backend' && 'docker/build_and_push_backend.Dockerfile' || 'docker/frontend/build_and_push_frontend.Dockerfile' }}
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || (github.ref == 'refs/heads/dev' && 'dev') || github.ref_name }}
+            ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
           build-args: |
-            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Corrected to pass the image without comments
+            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Pass appropriate base image
 
-      # Step 7: Verify the built images (optional check, can help detect issues)
+      # Step 7: Verify the built Docker images (optional sanity check)
       - name: Verify Docker Images
-        run: docker images
+        run: docker images  # List images to verify the output
 
-  # Job to merge the built images into a multi-arch manifest
+  # Multi-Arch Image Manifest creation job (merging amd64 and arm64 under the same tag)
   merge_images:
     needs: build_components
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Set up Docker Buildx for multi-arch manifest
+      # Step 1: Set up Docker Buildx to handle manifest merging
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 2: Docker login
-      - name: Login to Docker Hub
+      # Step 2: Log in to Docker registry (Docker Hub)
+      - name: Docker Login
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Create and push a multi-platform manifest
-      - name: Create and Push Multi-Platform Manifests
+      # Step 3: Create and Push Multi-Arch Docker Manifest (amd64/arm64) under the same tags
+      - name: Create and Push Multi-Platform Manifest
         run: |
           docker buildx imagetools create \
             --tag ${{ env.IMAGE_NAME }}:latest \
             --tag ${{ env.IMAGE_NAME }}:dev \
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}   # Ensure SHA tagging for builds
