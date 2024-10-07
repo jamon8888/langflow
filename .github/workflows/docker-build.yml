@@ -1,37 +1,32 @@
 name: Docker Build and Push
 
 on:
-  workflow_dispatch:  # Allow manual workflow dispatch.
+  workflow_dispatch:
   push:
     branches:
-      - main    # Trigger on pushes to main branch.
-      - dev     # Trigger on pushes to dev branch.
+      - main
+      - dev
     tags:
-      - v*      # Trigger on version tags (e.g., v1.0.0).
+      - v*
 
 env:
   REGISTRY: docker.io
   IMAGE_NAME: 'ixinjulu/platform'
 
 jobs:
-  # Step 1: Build the base platform image
   build_base_image:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Set up QEMU to enable cross-platform builds (important for ARM64)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Set up Docker Buildx for multi-platform support
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Log in to Docker Hub using credentials (secrets must be set in the repository)
       - name: Docker Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -39,39 +34,33 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and push the base platform image
       - name: Build and Push Base Image
         uses: docker/build-push-action@v6
         with:
-          context: .  # Use the root directory as the context (where Dockerfile is located)
-          platforms: linux/amd64,linux/arm64  # Multi-platform build (amd64 and arm64)
-          push: true  # Push the image to Docker Hub
-          file: ./docker/build_and_push_base.Dockerfile  # Use the base Dockerfile
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          file: ./docker/build_and_push_base.Dockerfile
           tags: |
-            ${{ env.IMAGE_NAME }}:latest  # Cleaned: no comments
+            ${{ env.IMAGE_NAME }}:latest
 
-  # Step 2: Build the backend image based on platform:latest
   build_backend_image:
-    needs: build_base_image  # Ensure backend image is built after platform image
+    needs: build_base_image
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]  # Build for both amd64 and arm64 platforms
+        platform: [linux/amd64, linux/arm64]
 
     steps:
-      # Checkout the repository
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      # Set up QEMU for cross-platform builds (enable ARM64 builds)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Set up Docker Buildx for multi-platform support
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Log in to Docker Hub
       - name: Docker Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -79,30 +68,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and push the backend image, tagging it based on the branch or tag
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v6
         with:
-          context: .  # Use the root directory
-          platforms: ${{ matrix.platform }}  # Multi-platform: amd64 and arm64
-          push: true  # Push the image to Docker Hub
-          file: ./docker/build_and_push_backend.Dockerfile  # Use backend Dockerfile
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: true
+          file: ./docker/build_and_push_backend.Dockerfile
           tags: |
-            ${{ env.IMAGE_NAME }}:backend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}  # Cleaned: removed inline comments
+            ${{ env.IMAGE_NAME }}:backend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
           build-args: |
-            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Passing base image without comment
+            LANGFLOW_IMAGE=ixinjulu/platform:latest
 
-  # Step 3: Create a multi-arch manifest after backend image is built
   merge_images:
     needs: build_backend_image
     runs-on: ubuntu-latest
 
     steps:
-      # Set up Docker Buildx for creating multi-platform manifests
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Log in to Docker Hub for pushing the manifests
       - name: Docker Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -110,7 +95,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Create and push a multi-platform manifest for the backend image
       - name: Create and Push Multi-Platform Manifest
         run: |
           docker buildx imagetools create \
@@ -118,6 +102,5 @@ jobs:
             --tag ${{ env.IMAGE_NAME }}:backend-dev \
             ${{ env.IMAGE_NAME }}:backend-${{ github.sha }}
 
-      # Optional step: Verify Docker manifests
       - name: Verify Docker Manifests
         run: docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:backend-latest
