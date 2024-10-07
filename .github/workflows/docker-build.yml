@@ -66,6 +66,12 @@ jobs:
       - name: Resolve nightly tag
         id: resolve-nightly-tag
         run: |
+          # Note - this is more complex than I'd like. For `main` builds, we just pass the `main` tag.
+          # For `base` builds, we pass both the `base` and `main` tags. This is because the `main` tag is the
+          # version we need to check out for the build, but the `base` tag is the version we need to build.
+          #
+          # So, you need to check for `base` existence before `main`.
+
           if [[ "${{ inputs.nightly_tag_base }}" != '' ]]; then
             if [[ "${{ inputs.release_type }}" != "base" ]]; then
               echo "Release type is not 'base'. Exiting the workflow."
@@ -201,6 +207,7 @@ jobs:
 
   build_components:
     runs-on: ubuntu-latest
+    needs: [build, get-version]
     strategy:
       matrix:
         component: [docker-backend, docker-frontend]
@@ -238,5 +245,5 @@ jobs:
             PLATFORM_IMAGE=${{ matrix.platform_image }}
           file: ${{ matrix.dockerfile }}
           tags: ${{ matrix.tags }}
+          push: true
           provenance: false
-
