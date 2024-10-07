@@ -52,19 +52,18 @@ jobs:
           platforms: ${{ matrix.platform }}  # Build across platforms
           push: true
           file: |
-            # Building images using different Dockerfiles for backend and frontend
             ${{ matrix.component == 'docker-backend' && 'docker/build_and_push_backend.Dockerfile' || 'docker/frontend/build_and_push_frontend.Dockerfile' }}
+          # Corrected this tags section 
           tags: |
-            # Tagging strategy: main/dev branches and version tags
-            ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
+            ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || (github.ref == 'refs/heads/dev' && 'dev') || github.ref_name }}
           build-args: |
             COMPONENT=${{ matrix.component }}  # Pass which component is being built
 
-      # Step 6: Verify the built images (optional, just to ensure everything is correctly set)
+      # Step 6: Verify the built images (optional check)
       - name: Verify Docker Images
         run: docker images
 
-  # Merge the built images into a single multi-arch manifest
+  # Merge the built images into a multi-arch manifest
   merge_images:
     needs: build_components
     runs-on: ubuntu-latest
