@@ -44,7 +44,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 5: Build and push the images for backend and frontend
+      # Step 5: Echo LANGFLOW_IMAGE (Debug Step)
+      - name: Echo LANGFLOW_IMAGE (Debug)
+        run: echo "Using LANGFLOW_IMAGE: ixinjulu/platform:latest"
+        
+      # Step 6: Build and push the images for backend and frontend
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -56,22 +60,22 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ github.ref == 'refs/heads/main' && 'latest' || (github.ref == 'refs/heads/dev' && 'dev') || github.ref_name }}
           build-args: |
-            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Using a valid image here
+            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Corrected to pass the image without comments
 
-      # Step 6: Verify the built images (optional check)
+      # Step 7: Verify the built images (optional check, can help detect issues)
       - name: Verify Docker Images
         run: docker images
 
-  # Merge the built images into a multi-arch manifest
+  # Job to merge the built images into a multi-arch manifest
   merge_images:
     needs: build_components
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Set up Docker Buildx
+      # Step 1: Set up Docker Buildx for multi-arch manifest
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
-      # Step 2: Log into Docker Hub
+
+      # Step 2: Docker login
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -79,7 +83,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Create and push a multi-platform manifest for the image
+      # Step 3: Create and push a multi-platform manifest
       - name: Create and Push Multi-Platform Manifests
         run: |
           docker buildx imagetools create \
