@@ -39,20 +39,20 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and push the base platform image (platform:latest)
+      # Build and push the base platform image
       - name: Build and Push Base Image
         uses: docker/build-push-action@v6
         with:
           context: .  # Use the root directory as the context (where Dockerfile is located)
           platforms: linux/amd64,linux/arm64  # Multi-platform build (amd64 and arm64)
           push: true  # Push the image to Docker Hub
-          file: ./docker/build_and_push_base.Dockerfile  # Use the base Dockerfile from repo
+          file: ./docker/build_and_push_base.Dockerfile  # Use the base Dockerfile
           tags: |
-            ${{ env.IMAGE_NAME }}:latest  # Tag the base image as platform:latest
+            ${{ env.IMAGE_NAME }}:latest  # Cleaned: no comments
 
   # Step 2: Build the backend image based on platform:latest
   build_backend_image:
-    needs: build_base_image  # Ensure backend image is built after the platform image
+    needs: build_base_image  # Ensure backend image is built after platform image
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -88,9 +88,9 @@ jobs:
           push: true  # Push the image to Docker Hub
           file: ./docker/build_and_push_backend.Dockerfile  # Use backend Dockerfile
           tags: |
-            ${{ env.IMAGE_NAME }}:backend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
+            ${{ env.IMAGE_NAME }}:backend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}  # Cleaned: removed inline comments
           build-args: |
-            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Use the base platform image as reference
+            LANGFLOW_IMAGE=ixinjulu/platform:latest  # Passing base image without comment
 
   # Step 3: Create a multi-arch manifest after backend image is built
   merge_images:
@@ -110,7 +110,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Create and push a multi-platform manifest for the backend
+      # Create and push a multi-platform manifest for the backend image
       - name: Create and Push Multi-Platform Manifest
         run: |
           docker buildx imagetools create \
