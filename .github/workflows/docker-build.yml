@@ -42,8 +42,7 @@ jobs:
           push: true
           file: ./docker/build_and_push_base.Dockerfile
           tags: |
-            ${{ env.IMAGE_NAME }}:frontend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
-            ${{ env.IMAGE_NAME }}:backend-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
+             ${{ env.IMAGE_NAME }}:platform-${{ github.ref == 'refs/heads/main' && 'latest' || github.ref == 'refs/heads/dev' && 'dev' || github.ref_name }}
 
   verify_images:
     needs: build_images
@@ -60,4 +59,4 @@ jobs:
       - name: Verify Docker Manifests
         run: |
           docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:frontend-latest
-          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:backend-latest
+       
