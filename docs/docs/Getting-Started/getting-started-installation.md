@@ -73,7 +73,7 @@ python -m langflow --help
 ```
 
 
-## ⛓️ Run Langflow {#d318c4d486b74f5383c45b4f6859dcaa}
+## Run Langflow {#d318c4d486b74f5383c45b4f6859dcaa}
 
 
 ---
