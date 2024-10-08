@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Keep this syntax directive! It's used to enable Docker BuildKit
 
-ARG LANGFLOW_IMAGE=ixinjulu/platform:latest
+ARG LANGFLOW_IMAGE=ixinjulu/platform
 FROM ${LANGFLOW_IMAGE}
 
 # Additional backend-specific steps
