@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:1
 # Keep this syntax directive! It's used to enable Docker BuildKit
 
-
 ################################
 # BUILDER-BASE
 # Used to build deps + create our virtual environment
@@ -32,12 +31,13 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the project's dependencies using the lockfile and settings
+# Install networkx and the project's dependencies using the lockfile and settings
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=src/backend/base/README.md,target=src/backend/base/README.md \
     --mount=type=bind,source=src/backend/base/uv.lock,target=src/backend/base/uv.lock \
     --mount=type=bind,source=src/backend/base/pyproject.toml,target=src/backend/base/pyproject.toml \
-    cd src/backend/base && uv sync --frozen --no-install-project --no-dev --no-editable
+    pip install networkx==3.1 \
+    && cd src/backend/base && uv sync --frozen --no-install-project --no-dev --no-editable
 
 ADD ./src /app/src
 
@@ -77,3 +77,4 @@ ENV LANGFLOW_HOST=0.0.0.0
 ENV LANGFLOW_PORT=7860
 
 CMD ["langflow-base", "run"]
+
