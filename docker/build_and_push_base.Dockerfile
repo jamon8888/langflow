@@ -17,7 +17,7 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 
-# Install dependencies
+# Install build dependencies
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     build-essential \
@@ -26,11 +26,13 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install project dependencies including networkx
+# Copy the dependency files
 COPY src/backend/base/pyproject.toml src/backend/base/pyproject.toml
 COPY src/backend/base/uv.lock src/backend/base/uv.lock
+
+# Install project dependencies including networkx
 RUN --mount=type=cache,target=/root/.cache/uv \
-    pip install networkx==3.1 \
+    pip install --no-cache-dir networkx==3.1 \
     && cd src/backend/base && uv sync --frozen --no-install-project --no-dev --no-editable
 
 # Copy application source code
