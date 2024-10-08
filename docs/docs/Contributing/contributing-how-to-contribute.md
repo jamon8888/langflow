@@ -138,16 +138,16 @@ You have a new document loader called **MyCustomDocumentLoader** and it would 
 You might want to share and test your custom component with others, but don't need it merged into the main source code.
 
 
-If so, you can share your component on the Langflow store.
+If so, you can share your component on the Hacienda Store.
 
 
-1. [Register at the Langflow store](https://www.langflow.store/login/).
+1. [Register at the Hacienda Store](https://www.langflow.store/login/).
 
 
 2. Undergo pre-validation before receiving an API key.
 
 
-3. To deploy your amazing component directly to the Langflow store, without it being merged into the main source code, navigate to your flow, and then click **Share**. The share window appears:
+3. To deploy your amazing component directly to the Hacienda Store, without it being merged into the main source code, navigate to your flow, and then click **Share**. The share window appears:
 
 
 ![](./683296796.png)
@@ -156,5 +156,5 @@ If so, you can share your component on the Langflow store.
 4. Choose whether you want to flow to be public or private. You can also **Export** your flow as a JSON file from this window. When you're ready to share the flow, click **Share Flow**. You should see a **Flow shared successfully** popup.
 
 
-5. To confirm, navigate to the **Langflow Store** and filter results by **Created By Me**. You should see your new flow on the **Langflow Store**.
+5. To confirm, navigate to the **Hacienda Store** and filter results by **Created By Me**. You should see your new flow on the **Hacienda Store**.
 

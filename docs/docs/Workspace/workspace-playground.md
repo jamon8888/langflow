@@ -24,7 +24,7 @@ Notice how the **Playground's** window arrangement changes depending on what com
 
 
 
-You can also open a flow's **Playground** without entering its workspace. From **My Collections** or **Langflow Store**, click the **Playground** in one of the projects card.
+You can also open a flow's **Playground** without entering its workspace. From **My Collections** or **Hacienda Store**, click the **Playground** in one of the projects card.
 
 
 <ReactPlayer controls url="https://youtu.be/guaN0DOTxfo" />

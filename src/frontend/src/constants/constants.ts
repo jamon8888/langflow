@@ -705,7 +705,7 @@ export const EDIT_CODE_TITLE = "Edit Code";
 export const MY_COLLECTION_DESC =
   "Manage your projects. Download and upload entire collections.";
 export const STORE_DESC = "Explore community-shared flows and components.";
-export const STORE_TITLE = "Langflow Store";
+export const STORE_TITLE = "Hacienda Store";
 export const NO_API_KEY = "You don't have an API key.";
 export const INSERT_API_KEY = "Insert your Langflow API key.";
 export const INVALID_API_KEY = "Your API key is not valid. ";

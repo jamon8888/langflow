@@ -25,7 +25,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=src/backend/base/README.md,target=/app/src/backend/base/README.md \
     --mount=type=bind,source=src/backend/base/uv.lock,target=/app/src/backend/base/uv.lock \
     --mount=type=bind,source=src/backend/base/pyproject.toml,target=/app/src/backend/base/pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync 
+
 
 # Expose valid backend and frontend ports for Langflow
 EXPOSE 7860  

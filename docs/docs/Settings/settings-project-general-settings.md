@@ -28,7 +28,7 @@ Click **Project Name** &gt; **Settings** to view your **Project Settings**.
 
 - **Name** - the name of your project.
 - **Description** - the description for your project.
-Visible on the Langflow Store.
+Visible on the Hacienda Store.
 - **Endpoint name** - the custom endpoint name for your project's API endpoint.
 To use the default value, leave this field blank.
 
@@ -50,7 +50,7 @@ Select a profile picture.
 ### Store API Key {#6a12756beb0b42fd84bdf5ab5f10fffb}
 
 
-Add your **Langflow Store** API key. To get a Store key, go to the [Langflow store](https://www.langflow.store/).
+Add your **Hacienda Store** API key. To get a Store key, go to the [Hacienda Store](https://www.langflow.store/).
 
 
 ### Global Variables {#12aa7f28060447babc987bdf57fc065e}

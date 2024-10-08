@@ -56,7 +56,7 @@ The `langflow` service uses the `langflowai/langflow:latest` Docker image an
 Environment variables:
 
 - `LANGFLOW_DATABASE_URL`: The connection string for the PostgreSQL database.
-- `LANGFLOW_CONFIG_DIR`: The directory where LangFlow stores logs, file storage, monitor data, and secret keys.
+- `LANGFLOW_CONFIG_DIR`: The directory where Hacienda Stores logs, file storage, monitor data, and secret keys.
 
 Volumes:
 
