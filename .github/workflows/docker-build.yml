@@ -27,11 +27,11 @@ jobs:
           - linux/arm64
 
     steps:
-      - name: Prepare platform pair environment
-        run: echo "PLATFORM_PAIR=${{ matrix.platform//\//- }}" >> $GITHUB_ENV
-
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Prepare platform pair environment
+        run: echo "PLATFORM_PAIR=${{ matrix.platform }}" | sed 's/\//-/' >> $GITHUB_ENV  # Fixed string manipulation
 
       - name: Set up QEMU for multi-platform builds
         uses: docker/setup-qemu-action@v3
@@ -65,7 +65,7 @@ jobs:
         id: build
         with:
           context: .
-          file: docker/build_and_push.Dockerfile   # <-- Updated to use the correct Dockerfile
+          file: docker/build_and_push.Dockerfile   # Use the correct Dockerfile
           push: true
           platforms: ${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -86,5 +86,6 @@ jobs:
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
+
 
  
