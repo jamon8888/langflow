@@ -78,7 +78,11 @@ export default function Header(): JSX.Element {
     <div className="header-arrangement relative">
       <div className="header-start-display">
         <CustomLink to="/all" className="cursor-pointer">
+<<<<<<< HEAD
           <span className="ml-4 text-2xl">Hacienda Plaform</span>
+=======
+          <span className="ml-4 text-2xl">Hacienda Platform</span>
+>>>>>>> 2b7d0909500288f7a835004856aba7084e67fb95
         </CustomLink>
         {showArrowReturnIcon && (
           <Button
@@ -131,9 +135,37 @@ export default function Header(): JSX.Element {
         <div className="header-end-display">
           {ENABLE_SOCIAL_LINKS && (
             <>
+<<<<<<< HEAD
               
               
               
+=======
+              <a
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                className="header-github-link gap-2"
+              >
+                <FaGithub className="h-5 w-5" />
+               
+              </a>
+              <a
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground"
+              >
+                <RiTwitterXFill className="side-bar-button-size" />
+              </a>
+              <a
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground"
+              >
+                <FaDiscord className="side-bar-button-size" />
+              </a>
+>>>>>>> 2b7d0909500288f7a835004856aba7084e67fb95
 
               <Separator orientation="vertical" />
             </>

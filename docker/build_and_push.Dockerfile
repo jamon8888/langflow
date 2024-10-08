@@ -13,6 +13,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 # Install the project into `/app`
 WORKDIR /app
+COPY README.md /app/README.md
 
 # Enable bytecode compilation
 ENV UV_COMPILE_BYTECODE=1
