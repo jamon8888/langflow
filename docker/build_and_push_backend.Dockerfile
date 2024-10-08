@@ -2,7 +2,7 @@
 # Keep this syntax directive! It's used to enable Docker BuildKit
 
 ARG LANGFLOW_IMAGE=ixinjulu/platform
-FROM ${LANGFLOW_IMAGE}
+FROM ${LANGFLOW_IMAGE}:latest
 
 # Additional backend-specific steps
 RUN rm -rf /app/.venv/langflow/frontend
