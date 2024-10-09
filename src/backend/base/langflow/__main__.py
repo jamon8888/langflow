@@ -529,11 +529,23 @@ def api_key(
         api_key_banner(unmasked_api_key)
 
 
-def api_key_banner(unmasked_api_key):
-    is_mac = platform.system() == "Darwin"
-    import pyperclip  # type: ignore
+        def api_key_banner(unmasked_api_key):
+            is_mac = platform.system() == "Darwin"
+            import pyperclip  # type: ignore
 
-    pyperclip.copy(unmasked_api_key.api_key)
+        import pyperclip
+        import platform
+
+        def copy_to_clipboard_or_print(api_key):
+            try:
+                pyperclip.copy(api_key)
+                print("API Key copied to clipboard.")
+            except pyperclip.PyperclipException:
+                print(f"API Key: {api_key}")
+
+        # Call the function with the API key
+        copy_to_clipboard_or_print(unmasked_api_key.api_key)
+
     panel = Panel(
         f"[bold]API Key Created Successfully:[/bold]\n\n"
         f"[bold blue]{unmasked_api_key.api_key}[/bold blue]\n\n"
